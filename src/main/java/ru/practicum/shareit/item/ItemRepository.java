@@ -16,21 +16,21 @@ public class ItemRepository {
         return item;
     }
 
-    public Item updateItem(Long itemId, Long ownerId, Map<String, Object> updates) {
+    public Item updateItem(Long itemId, Long ownerId, ItemUpdateDTO updates) {
         Item existingItem = getItemById(itemId);
 
         if (!existingItem.getOwnerId().equals(ownerId)) {
             throw new NotFoundException("Пользователь не является владельцем вещи");
         }
 
-        if (updates.containsKey("name")) {
-            existingItem.setName((String) updates.get("name"));
+        if (updates.getName() != null) {
+            existingItem.setName(updates.getName());
         }
-        if (updates.containsKey("description")) {
-            existingItem.setDescription((String) updates.get("description"));
+        if (updates.getDescription() != null) {
+            existingItem.setDescription(updates.getDescription());
         }
-        if (updates.containsKey("available")) {
-            existingItem.setAvailable((Boolean) updates.get("available"));
+        if (updates.getAvailable() != null) {
+            existingItem.setAvailable(updates.getAvailable());
         }
 
         return existingItem;

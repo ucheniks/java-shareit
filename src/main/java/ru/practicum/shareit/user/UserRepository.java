@@ -21,20 +21,22 @@ public class UserRepository {
         return user;
     }
 
-    public User updateUser(Long userId, Map<String, Object> updates) {
+    public User updateUser(Long userId, UserUpdateDTO updateUser) {
         User existingUser = getUserById(userId);
 
-        if (updates.containsKey("name")) {
-            existingUser.setName((String) updates.get("name"));
+        if (updateUser.getName() != null) {
+            existingUser.setName(updateUser.getName());
         }
 
-        if (updates.containsKey("email")) {
-            String newEmail = (String) updates.get("email");
+        if (updateUser.getEmail() != null) {
+            String newEmail = updateUser.getEmail();
             if (!newEmail.equals(existingUser.getEmail())) {
                 if (emails.contains(newEmail)) {
                     throw new ConflictException("Email уже используется: " + newEmail);
                 }
+                emails.remove(existingUser.getEmail());
                 existingUser.setEmail(newEmail);
+                emails.add(newEmail);
             }
         }
 

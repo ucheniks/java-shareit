@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/items")
@@ -29,9 +28,9 @@ public class ItemController {
     public ItemResponseDTO updateItem(
             @RequestHeader(USER_ID_HEADER) Long ownerId,
             @PathVariable Long itemId,
-            @RequestBody Map<String, Object> updates) {
-        log.info("Обновление вещи ID {}: {} пользователем {}", itemId, updates, ownerId);
-        return itemService.updateItem(itemId, ownerId, updates);
+            @RequestBody @Valid ItemUpdateDTO updateItem) {
+        log.info("Обновление вещи ID {}: {} пользователем {}", itemId, updateItem, ownerId);
+        return itemService.updateItem(itemId, ownerId, updateItem);
     }
 
     @GetMapping("/{itemId}")

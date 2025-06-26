@@ -1,18 +1,16 @@
 package ru.practicum.shareit.user;
 
 import java.util.List;
-import java.util.Map;
 
 public interface UserService {
-    UserDTO createUser(UserDTO userDTO);
+    UserResponseDTO createUser(UserRequestDTO userDTO);
 
-    UserDTO updateUser(Long userId, Map<String, Object> updates);
+    UserResponseDTO updateUser(Long userId, UserUpdateDTO updateUser);
 
-    UserDTO getUserById(Long userId);
+    UserResponseDTO getUserById(Long userId);
 
-    List<UserDTO> getAllUsers();
+    List<UserResponseDTO> getAllUsers();
 
     void deleteUser(Long userId);
 
-    boolean existsById(Long userId);
 }
