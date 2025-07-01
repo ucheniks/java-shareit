@@ -5,10 +5,18 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class UserMapper {
     public User toUser(UserRequestDTO dto) {
-        return new User(null, dto.getName(), dto.getEmail());
+        return User.builder()
+                .id(null)
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .build();
     }
 
     public UserResponseDTO toResponseDto(User user) {
-        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail());
+        return UserResponseDTO.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
     }
 }

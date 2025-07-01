@@ -14,4 +14,6 @@ public interface ItemService {
     List<ItemResponseDTO> searchAvailableItems(String text);
 
     void deleteItem(Long itemId);
+
+    CommentResponseDTO addComment(Long userId, Long itemId, String text);
 }
