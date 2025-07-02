@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class BookingService {
     private static final int PAGE_SIZE = 10;
 
@@ -28,6 +28,8 @@ public class BookingService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
+
+    @Transactional
     public BookingResponseDTO createBooking(Long userId, BookingRequestDTO bookingRequestDTO) {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -48,6 +50,7 @@ public class BookingService {
         return BookingMapper.toBookingResponseDTO(savedBooking);
     }
 
+    @Transactional
     public BookingResponseDTO approveBooking(Long ownerId, Long bookingId, Boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));

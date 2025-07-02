@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingDateDTO;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.user.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,28 +66,51 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemResponseDTO> getAllItemsByOwner(Long ownerId) {
         List<Item> items = itemRepository.findByOwnerIdOrderByIdAsc(ownerId);
-
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
         LocalDateTime now = LocalDateTime.now();
+
+        Map<Long, Booking> lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, now)
+                .stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        booking -> booking,
+                        (existing, replacement) -> existing
+                ));
+
+        Map<Long, Booking> nextBookingsMap = bookingRepository.findNextBookingsForItems(itemIds, now)
+                .stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        booking -> booking,
+                        (existing, replacement) -> existing
+                ));
 
         return items.stream()
                 .map(item -> {
                     ItemResponseDTO dto = ItemMapper.toItemResponseDTO(item);
+                    Long itemId = item.getId();
 
-                    bookingRepository.findLastBookingForItem(item.getId(), now)
-                            .ifPresent(lastBooking -> dto.setLastBooking(
-                                    BookingDateDTO.builder()
-                                            .id(lastBooking.getId())
-                                            .bookerId(lastBooking.getBooker().getId())
-                                            .build()
-                            ));
+                    Booking lastBooking = lastBookingsMap.get(itemId);
+                    if (lastBooking != null) {
+                        dto.setLastBooking(
+                                BookingDateDTO.builder()
+                                        .id(lastBooking.getId())
+                                        .bookerId(lastBooking.getBooker().getId())
+                                        .build()
+                        );
+                    }
 
-                    bookingRepository.findNextBookingForItem(item.getId(), now)
-                            .ifPresent(nextBooking -> dto.setNextBooking(
-                                    BookingDateDTO.builder()
-                                            .id(nextBooking.getId())
-                                            .bookerId(nextBooking.getBooker().getId())
-                                            .build()
-                            ));
+                    Booking nextBooking = nextBookingsMap.get(itemId);
+                    if (nextBooking != null) {
+                        dto.setNextBooking(
+                                BookingDateDTO.builder()
+                                        .id(nextBooking.getId())
+                                        .bookerId(nextBooking.getBooker().getId())
+                                        .build()
+                        );
+                    }
 
                     return dto;
                 })

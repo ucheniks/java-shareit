@@ -1,8 +1,10 @@
 package ru.practicum.shareit.item;
 
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class CommentMapper {
-    public static CommentResponseDTO toDTO(Comment comment) {
+    public CommentResponseDTO toDTO(Comment comment) {
         return CommentResponseDTO.builder()
                 .id(comment.getId())
                 .text(comment.getText())
