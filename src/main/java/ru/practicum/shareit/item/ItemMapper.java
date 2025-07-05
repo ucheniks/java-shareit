@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.experimental.UtilityClass;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import java.util.List;
@@ -8,12 +9,13 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class ItemMapper {
-    public Item toItem(ItemRequestDTO dto, User owner) {
+    public Item toItem(ItemRequestDTO dto, User owner, ItemRequest request) {
         return Item.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .available(dto.getAvailable())
                 .owner(owner)
+                .request(request)
                 .build();
     }
 
@@ -46,7 +48,7 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .ownerId(item.getOwner().getId())
-                .requestId(item.getRequestId())
+                .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
                 .comments(commentDTOs)
                 .build();
     }

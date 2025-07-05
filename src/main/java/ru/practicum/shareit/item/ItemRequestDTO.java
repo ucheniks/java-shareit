@@ -19,4 +19,6 @@ public class ItemRequestDTO {
 
     @NotNull(message = "Статус доступности вещи обязателен")
     private Boolean available;
+
+    private Long requestId;
 }

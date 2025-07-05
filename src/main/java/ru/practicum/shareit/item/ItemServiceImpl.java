@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
@@ -9,6 +10,8 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -21,19 +24,29 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
+
 
     @Override
     @Transactional
     public ItemResponseDTO createItem(Long ownerId, ItemRequestDTO itemDTO) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID " + ownerId + " не найден"));
-
-        Item item = ItemMapper.toItem(itemDTO, owner);
+        log.info("Дошли до сервиса");
+        ItemRequest request = null;
+        if (itemDTO.getRequestId() != null) {
+            request = itemRequestRepository.findById(itemDTO.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос с ID " + itemDTO.getRequestId() + " не найден"));
+        }
+        log.info("Прошли получение запроса из бд");
+        Item item = ItemMapper.toItem(itemDTO, owner, request);
+        log.info("Прошли маппер в сущность");
         Item savedItem = itemRepository.save(item);
         return ItemMapper.toItemResponseDTO(savedItem);
     }

@@ -14,3 +14,19 @@ services:
       timeout: 5s
       interval: 5s
       retries: 10
+
+  db-test: # <-- Новая БД для тестов
+    image: postgres:16.1
+    ports:
+      - "5433:5432"  # <-- Другой порт для тестовой БД
+    volumes:
+      - ./volumes/postgres-test:/var/lib/postgresql/data/  # <-- Отдельный volume
+    environment:
+      - POSTGRES_DB=shareit_test  # <-- Тестовая БД
+      - POSTGRES_USER=shareit_user
+      - POSTGRES_PASSWORD=shareit_pass
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
