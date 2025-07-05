@@ -24,6 +24,15 @@ public class ItemController {
         return itemService.createItem(ownerId, itemDTO);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentResponseDTO addComment(
+            @RequestHeader(USER_ID_HEADER) Long userId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody CommentRequestDTO commentRequestDTO) {
+        log.info("Добавление комментария к вещи {} пользователем {}", itemId, userId);
+        return itemService.addComment(userId, itemId, commentRequestDTO.getText());
+    }
+
     @PatchMapping("/{itemId}")
     public ItemResponseDTO updateItem(
             @RequestHeader(USER_ID_HEADER) Long ownerId,
