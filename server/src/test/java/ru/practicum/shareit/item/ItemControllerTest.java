@@ -83,6 +83,21 @@ class ItemControllerTest {
     }
 
     @Test
+    void createInvalidItem() throws Exception {
+        ItemRequestDTO invalidRequest = new ItemRequestDTO("Некорректное имя", "Описание", true, null);
+
+        when(itemService.createItem(eq(1L), any()))
+                .thenThrow(new ValidationException("Ошибка валидации"));
+
+        mockMvc.perform(post("/items")
+                        .header("X-Sharer-User-Id", 1L)
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"));
+    }
+
+    @Test
     void update() throws Exception {
         ItemUpdateDTO update = new ItemUpdateDTO();
         update.setName("Дрель+");

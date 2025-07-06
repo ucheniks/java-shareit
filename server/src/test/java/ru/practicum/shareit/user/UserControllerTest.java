@@ -67,6 +67,17 @@ class UserControllerTest {
     }
 
     @Test
+    void createUser_unexpectedError() throws Exception {
+        when(userService.createUser(any()))
+                .thenThrow(new RuntimeException("Внутренняя ошибка"));
+
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(validRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
     void getUserById_ok() throws Exception {
         when(userService.getUserById(1L)).thenReturn(responseDto);
 
@@ -150,4 +161,5 @@ class UserControllerTest {
         mockMvc.perform(delete("/users/99"))
                 .andExpect(status().isNotFound());
     }
+
 }

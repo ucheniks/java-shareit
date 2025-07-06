@@ -64,6 +64,19 @@ class BookingControllerTest {
     }
 
     @Test
+    void createBooking_500() throws Exception {
+        when(bookingService.createBooking(anyLong(), any()))
+                .thenThrow(new RuntimeException("Внутренняя ошибка"));
+
+        mockMvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 1L)
+                        .content(objectMapper.writeValueAsString(validRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error", containsString("Внутренняя ошибка")));
+    }
+
+    @Test
     void approveBooking_200() throws Exception {
         BookingResponseDTO approvedResponse = BookingResponseDTO.builder()
                 .id(1L)
