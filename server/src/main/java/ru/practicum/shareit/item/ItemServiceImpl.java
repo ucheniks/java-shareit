@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingDateDTO;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.request.ItemRequest;
@@ -150,18 +149,37 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public CommentResponseDTO addComment(Long userId, Long itemId, String text) {
+        log.info("addComment: userId={}, itemId={}, text={}", userId, itemId, text);
+
         User author = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> {
+                    log.warn("User not found: {}", userId);
+                    return new NotFoundException("Пользователь не найден");
+                });
 
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+                .orElseThrow(() -> {
+                    log.warn("Item not found: {}", itemId);
+                    return new NotFoundException("Вещь не найдена");
+                });
 
-        boolean hasBooking = bookingRepository
-                .findByItemIdAndBookerIdAndEndBefore(itemId, userId, LocalDateTime.now())
-                .stream()
-                .anyMatch(booking -> booking.getStatus() == BookingStatus.APPROVED);
+        LocalDateTime time = LocalDateTime.now().plusSeconds(1);
+        log.info("Вызываю hasUserBookedItem с now+1sec={}", time);
+
+        boolean hasBooking;
+
+        try {
+            log.info("Checking booking for userId={}, itemId={}, time={}", userId, itemId, time);
+            hasBooking = bookingRepository.hasUserBookedItem(userId, itemId, time);
+            log.info("Booking check result: {} for params: userId={}, itemId={}, time={}",
+                    hasBooking, userId, itemId, time);
+        } catch (Exception e) {
+            log.error("Error in bookingRepository.hasUserBookedItem", e);
+            throw e;
+        }
 
         if (!hasBooking) {
+            log.warn("No booking found -> throwing ValidationException");
             throw new ValidationException("Вы не можете оставить комментарий, так как не арендовали вещь");
         }
 
@@ -169,12 +187,15 @@ public class ItemServiceImpl implements ItemService {
                 .text(text)
                 .item(item)
                 .author(author)
-                .created(LocalDateTime.now())
+                .created(time)
                 .build();
 
         commentRepository.save(comment);
+        log.info("Комментарий сохранился успешно");
+
         return CommentMapper.toDTO(comment);
     }
+
 
     private Item updateIfNotNull(Item newItem, Item existingItem) {
         if (newItem.getName() != null) {

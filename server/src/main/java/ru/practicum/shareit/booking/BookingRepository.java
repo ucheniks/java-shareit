@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -52,6 +53,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY b.start ASC")
     List<Booking> findNextBookingsForItems(@Param("itemIds") List<Long> itemIds,
                                            @Param("now") LocalDateTime now);
+
+    @Query(value = """
+            SELECT EXISTS (
+                SELECT 1 FROM bookings
+                WHERE item_id = :itemId
+                AND booker_id = :userId
+                AND status = 'APPROVED'
+                AND end_date < :time
+            )""",
+            nativeQuery = true)
+    boolean hasUserBookedItem(
+            @Param("userId") Long userId,
+            @Param("itemId") Long itemId,
+            @Param("time") LocalDateTime time
+    );
+
+
+    @Query(value = "SELECT NOW() AT TIME ZONE 'UTC'", nativeQuery = true)
+    OffsetDateTime getCurrentDbTime();
 
     List<Booking> findByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime end);
 }
